@@ -16,7 +16,6 @@ data Declaration
 -- | Assert a Boolean fact.
 newtype Assertion
   = Assert Expr
---  AssertWeighted Weight Expr
   deriving (Show)
 
 -- | Assert some facts in the context of some variables.
@@ -118,9 +117,8 @@ data Signedness
 type Ident  = String
 type Size   = Int
 type Index  = Int
-type Weight = Integer
 
--- * Asking for models
+-- * Models
 
 -- | Types of variables which can be queried
 -- from a model.
@@ -142,6 +140,7 @@ type ModelType = [Get]
 -- | A query to the solver: solve for some variables in a context.
 data Query
   = Query Context ModelType
+  deriving (Show)
 
 -- | A value produced from a model.
 data Value

@@ -3,6 +3,9 @@
 -- Defines a number of aliases and infix operators, plus a
 -- @'Num'@ instance for @'Expr'@.
 --
+-- This is not an essential part of the interface. Expressions
+-- may be built using @Yices.Easy.Types@ directly.
+--
 -- This is a quick hack.  There are several other projects working
 -- on vastly more sophisticated SMT EDSLs, so this one is unlikely
 -- to receive much attention.  That said, suggestions and patches
@@ -29,7 +32,7 @@ module Yices.Easy.Sugar
  , (==.), (/=.), (>.), (>=.), (<.), (<=.)
 
    -- * Literal bitvectors
- , bitvector
+ , bv
 
    -- * Bitvector arithmetic
  , (+@), (-@), (*@)
@@ -152,9 +155,10 @@ infixr 7 ^@
 (^@) = BitLogic Xor
 
 
-bitvector :: Integer -> Expr
-bitvector n
-  | n < 0 = error "Yices.Easy.Sugar.bitvector: negative Integer not allowed"
-bitvector n = LitBitvec . FromBits . getBits $ n where
-  getBits 0 = []
-  getBits k = let (d,m) = k `divMod` 2 in toEnum (fromIntegral m) : getBits d
+-- | @bv s n@ has value @n@ and size at least @s@.
+bv :: Size -> Integer -> Expr
+bv _ n
+  | n < 0 = error "Yices.Easy.Sugar.bv: negative Integer not allowed"
+bv s n = LitBitvec . FromBits $ getBits s n where
+  getBits b 0 = replicate b B0
+  getBits b k = let (d,m) = k `divMod` 2 in toEnum (fromIntegral m) : getBits (b-1) d

@@ -140,10 +140,6 @@ withContext (Context ds as) act
   env <- foldM mkD M.empty ds
   let mkA (Assert e) =
         buildExpr env ctx e >>= Y.c_assert ctx
-        {-
-      mkA (AssertWeighted w e) =
-        buildExpr env ctx e >>= flip (Y.c_assert_weighted ctx) (fI w)
-          >> return () -}
   mapM_ mkA as
   act env ctx 
 

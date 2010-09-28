@@ -6,13 +6,15 @@
 -- | Provides a monad transformer for constructing Yices queries.
 --
 -- This is not an essential part of the interface.  Expressions
--- may be built using @Yices.Easy.Types@ only.  The monad is simply
--- a way to handle bookkeeping regarding fresh names, accumulated
--- declarations \/ assertions, and choosing variables to retrieve
--- from the @'Model'@.
+-- may be built using @Yices.Easy.Types@ directly.
+--
+-- The monad is simply a convenient way to handle bookkeeping
+-- regarding fresh names, accumulated declarations \/
+-- assertions, and choosing variables to retrieve from the
+-- @'Model'@.
 
 module Yices.Easy.Build
-  ( -- * The monad
+  ( -- * The monad transformer
     BuildT
   , Build
   , runBuildT
@@ -36,7 +38,7 @@ module Yices.Easy.Build
     -- * Getting variables
   , get
 
-    -- * Declaring and getting
+    -- * Declaring and getting variables
   , declInt
   , declBool
   , declBitvec
@@ -49,20 +51,21 @@ import Data.Functor.Identity
 import Control.Monad
 import Control.Applicative
 
+import qualified Data.Map                  as M
 import qualified Control.Monad.Trans.State as S
 
 data State = State
   { sNext    :: Integer
   , sDecls   :: [Declaration]
   , sAsserts :: [Assertion]
-  , sGets    :: [Get] }
+  , sGets    :: M.Map Ident VarType }
 
 startState :: State
 startState = State
   { sNext    = 0
   , sDecls   = []
   , sAsserts = []
-  , sGets    = [] }
+  , sGets    = M.empty }
 
 -- | Monad transformer for building Yices queries.
 newtype BuildT m a = BuildT (S.StateT State m a)
@@ -76,7 +79,8 @@ deriving instance (Functor m, Monad m) => Applicative (BuildT m)
 runBuildT :: (Monad m) => BuildT m a -> m (a, Query)
 runBuildT (BuildT x) = do
   (v, State { sDecls, sAsserts, sGets }) <- S.runStateT x startState
-  return (v, Query (Context sDecls sAsserts) sGets)
+  let gets = map (uncurry Get) $ M.assocs sGets
+  return (v, Query (Context sDecls sAsserts) gets)
 
 execBuildT :: (Monad m) => BuildT m a -> m Query
 execBuildT x = snd `liftM` runBuildT x
@@ -116,7 +120,7 @@ assert e = BuildT . S.modify $ \s ->
 -- | Arrange to get this variable in the resulting @'Model'@.
 get :: (Monad m) => Ident -> VarType -> BuildT m ()
 get x t = BuildT . S.modify $ \s ->
-  s { sGets = Get x t : sGets s }
+  s { sGets = M.insert x t $ sGets s }
 
 declGet :: (Monad m) => Type -> VarType -> Ident -> BuildT m Expr
 declGet t v x = do
