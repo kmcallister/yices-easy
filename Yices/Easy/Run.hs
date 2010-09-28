@@ -6,8 +6,8 @@
 
 module Yices.Easy.Run
   ( -- * Solving
-    check
-  , checkIO
+    solve
+  , solveIO
     -- * Debugging
   , dump
   ) where
@@ -83,7 +83,7 @@ buildExpr env ctx = go where
 
   getLogic And = Y.c_mk_and
   getLogic Or  = Y.c_mk_or
-  getLogic Xor = error "no xor for booleans"
+  getLogic Xor = error "Yices.Easy.Run: no xor for booleans"
 
   getCompare Eq = Y.c_mk_eq
   getCompare Ne = Y.c_mk_diseq
@@ -138,8 +138,7 @@ withContext (Context ds as) act
         dp <- withCString x $ \xp -> Y.c_mk_var_decl ctx xp tp
         return $ M.insert x dp m
   env <- foldM mkD M.empty ds
-  let mkA (Assert e) =
-        buildExpr env ctx e >>= Y.c_assert ctx
+  let mkA (Assert e) = buildExpr env ctx e >>= Y.c_assert ctx
   mapM_ mkA as
   act env ctx 
 
@@ -182,21 +181,21 @@ get env mdl (Get v t) = Got v <$> go (M.lookup v env) where
       then return ValUnknown
       else (ValBitvec . map (toEnum.fI)) <$> peekArray n p
 
--- | The @'IO'@ action underlying @'check'@.
-checkIO :: Query -> IO (Maybe Model)
-checkIO (Query c ts) = withContext c $ \env ctx -> do
+-- | The @'IO'@ action underlying @'solve'@.
+solveIO :: Query -> IO (Maybe Model)
+solveIO (Query c ts) = withContext c $ \env ctx -> do
   sat <- Y.c_check ctx
   if sat /= 1 then return Nothing else do
     mdl <- Y.c_get_model ctx
     Just <$> mapM (get env mdl) ts
 
--- | Check a context for satisfiability.
+-- | Solve a satisfiability query.
 --
 -- If satisfiable, returns values for the specified
 -- variables.
 --
 -- Here we assume that Yices, taken as a whole, is
 -- a pure function.  We wrap the IO action returned
--- by @'checkIO'@ using @'unsafePerformIO'@.
-check :: Query -> Maybe Model
-check = unsafePerformIO . checkIO
+-- by @'solveIO'@ using @'unsafePerformIO'@.
+solve :: Query -> Maybe Model
+solve = unsafePerformIO . solveIO

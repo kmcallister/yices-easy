@@ -23,7 +23,7 @@ module Yices.Easy.Build
   , execBuild
 
     -- * Invoking Yices directly
-  , checkBuild
+  , solveBuild
 
     -- * Fresh names
   , freshName
@@ -91,9 +91,9 @@ runBuild = runIdentity . runBuildT
 execBuild :: Build a -> Query
 execBuild = runIdentity . execBuildT
 
--- | Invoke @'check'@ on a @'Build'@ action directly.
-checkBuild :: Build a -> Maybe Model
-checkBuild = check . execBuild
+-- | Invoke @'solve'@ on a @'Build'@ action directly.
+solveBuild :: Build a -> Maybe Model
+solveBuild = solve . execBuild
 
 -- | Generate a fresh name from a base string.
 freshName :: (Monad m) => Ident -> BuildT m Ident
