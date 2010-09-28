@@ -137,6 +137,7 @@ withContext (Context ds as) act
         tp <- buildType ctx t
         dp <- withCString x $ \xp -> Y.c_mk_var_decl ctx xp tp
         return $ M.insert x dp m
+  Y.c_enable_type_checker 1
   env <- foldM mkD M.empty ds
   let mkA (Assert e) = buildExpr env ctx e >>= Y.c_assert ctx
   mapM_ mkA as
