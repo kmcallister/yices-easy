@@ -7,13 +7,13 @@
 module Yices.Easy.Run
   ( -- * Solving
     solve
-  , solveIO
     -- * Debugging
   , dump
   ) where
 
 import Yices.Easy.Types
 
+import Data.Maybe
 import Data.Ratio
 import Control.Applicative
 import Control.Monad
@@ -152,15 +152,18 @@ dump c e = withContext c $ \env ctx -> do
   Y.c_pp_expr ep
   putStrLn ""
 
-get :: Env -> PModel -> Get -> IO Got
-get env mdl (Get v t) = Got v <$> go (M.lookup v env) where
+get :: Env -> PModel -> Get -> IO (Maybe (Ident, Value))
+get env mdl (Get v t) = do
+  x <- go (M.lookup v env)
+  return ((,) v <$> x) where
+
   go (Just dp) = case t of
-    VarBool     -> fromLBool <$>   Y.c_get_value mdl dp
+    VarBool     -> (Just . fromLBool) <$>    Y.c_get_value mdl dp
     VarInt      -> chk ValInt    $ Y.c_get_int_value       mdl dp
     VarRational -> withRational  $ Y.c_get_arith_value     mdl dp
     VarDouble   -> chk ValDouble $ Y.c_get_double_value    mdl dp
     VarBitvec n -> withVec n     $ Y.c_get_bitvector_value mdl dp (fI n)
-  go Nothing = return ValUnknown
+  go Nothing = return Nothing
 
   fromLBool 1 = ValBool True
   fromLBool _ = ValBool False
@@ -168,34 +171,26 @@ get env mdl (Get v t) = Got v <$> go (M.lookup v env) where
   chk f a = alloca $ \p -> do
     x <- a p
     if x /= 1
-      then return ValUnknown
-      else f <$> peek p
+      then return Nothing
+      else (Just . f) <$> peek p
   withRational a = alloca $ \n -> alloca $ \d -> do
     x <- a n d
     if x /= 1
-      then return ValUnknown
-      else ValRational <$> liftM2 (%) (fI <$> peek n) (fI <$> peek d)
+      then return Nothing
+      else (Just . ValRational) <$> liftM2 (%) (fI <$> peek n) (fI <$> peek d)
   withVec n a = allocaArray n $ \p -> do
     x <- a p
     if x /= 1
-      then return ValUnknown
-      else (ValBitvec . map (toEnum.fI)) <$> peekArray n p
-
--- | The @'IO'@ action underlying @'solve'@.
-solveIO :: Query -> IO (Maybe Model)
-solveIO (Query c ts) = withContext c $ \env ctx -> do
-  sat <- Y.c_check ctx
-  if sat /= 1 then return Nothing else do
-    mdl <- Y.c_get_model ctx
-    Just <$> mapM (get env mdl) ts
+      then return Nothing
+      else (Just . ValBitvec . map (toEnum.fI)) <$> peekArray n p
 
 -- | Solve a satisfiability query.
 --
 -- If satisfiable, returns values for the specified
 -- variables.
---
--- Here we assume that Yices, taken as a whole, is
--- a pure function.  We wrap the IO action returned
--- by @'solveIO'@ using @'unsafePerformIO'@.
-solve :: Query -> Maybe Model
-solve = unsafePerformIO . solveIO
+solve :: Query -> IO (Maybe Model)
+solve (Query c ts) = withContext c $ \env ctx -> do
+  sat <- Y.c_check ctx
+  if sat /= 1 then return Nothing else do
+    mdl <- Y.c_get_model ctx
+    (Just . M.fromList . catMaybes) <$> mapM (get env mdl) ts

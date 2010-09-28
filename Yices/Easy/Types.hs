@@ -5,6 +5,7 @@ module Yices.Easy.Types
   where
 
 import Foreign.C.Types ( CULong, CLong, CDouble )
+import qualified Data.Map as M
 
 -- * Top level
 
@@ -149,12 +150,10 @@ data Value
   | ValRational Rational
   | ValDouble   CDouble
   | ValBitvec   [Bit] -- ^ LSB first
-  | ValUnknown  -- ^ due to underspecification, type mismatch, etc.
   deriving (Show)
 
--- | A variable together with its value in a model.
-data Got
-  = Got Ident Value
-  deriving (Show)
-
-type Model = [Got]
+-- | A model maps variables to values.
+--
+-- Some of the asked-for variables may be absent, if there was an
+-- error or the model was underspecified.
+type Model = M.Map Ident Value

@@ -23,6 +23,7 @@ module Yices.Easy.Build
   , execBuild
 
     -- * Invoking Yices directly
+  , solveBuildT
   , solveBuild
 
     -- * Fresh names
@@ -92,15 +93,22 @@ execBuild :: Build a -> Query
 execBuild = runIdentity . execBuildT
 
 -- | Invoke @'solve'@ on a @'Build'@ action directly.
-solveBuild :: Build a -> Maybe Model
+solveBuild :: Build a -> IO (Maybe Model)
 solveBuild = solve . execBuild
 
+-- | Invoke @'solve'@ on a @'BuildT' 'IO'@ action directly.
+solveBuildT :: BuildT IO a -> IO (Maybe Model)
+solveBuildT x = execBuildT x >>= solve
+
 -- | Generate a fresh name from a base string.
+--
+-- The name will not conflict with a user-specified name
+-- unless that name begins with an underscore.
 freshName :: (Monad m) => Ident -> BuildT m Ident
 freshName x = BuildT $ do
   s@State { sNext=n } <- S.get
   S.put $ s { sNext=succ n }
-  return (x ++ ('_' : show n))
+  return $ concat ["_", x, "_", show n]
 
 -- | Declare a variable.
 declare :: (Monad m) => Ident -> Type -> BuildT m Expr
@@ -109,6 +117,8 @@ declare x t = BuildT $ do
   return $ Var x
 
 -- | Declare a fresh variable given a base name.
+--
+-- See @'freshName'@ for naming details.
 fresh :: (Monad m) => Ident -> Type -> BuildT m Expr
 fresh x t = freshName x >>= flip declare t
 
