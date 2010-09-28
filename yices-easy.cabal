@@ -1,0 +1,30 @@
+name:                yices-easy
+version:             0.1
+license:             BSD3
+license-file:        LICENSE
+synopsis:            Simple, pure interface to the Yices SMT (SAT modulo theories) solver.
+category:            Math, Algorithms, Theorem Provers
+author:              Keegan McAllister <mcallister.keegan@gmail.com>
+maintainer:          Keegan McAllister <mcallister.keegan@gmail.com>
+build-type:          Simple
+cabal-version:       >=1.2
+description:
+  This library provides a simple, pure interface to Yices, a SMT solver
+  available from <http://yices.csl.sri.com/>.
+  .
+  It uses the Yices C API, which you will need to have installed.
+  .
+  The library aims for simplicity, and not all features of Yices are
+  supported.  Suggestions and patches are welcome.
+
+library
+  exposed-modules:  
+      Yices.Easy
+    , Yices.Easy.Types
+    , Yices.Easy.Run
+    , Yices.Easy.Sugar
+  ghc-options:       -Wall
+  build-depends:
+      base           >= 3 && < 5
+    , containers     >= 0.3
+    , bindings-yices >= 0.2
