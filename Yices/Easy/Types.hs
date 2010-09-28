@@ -68,7 +68,7 @@ data LitNum
 -- | Ways of specifying a literal bitvector.
 data LitBitvec
   = FromULong  Size CULong
-  | FromBits   [Bit]         -- ^ LSB first.
+  | FromBits   [Bit]         -- ^ Least-significant first.
   deriving (Show, Eq)
 
 -- | Arithmetic operations.
@@ -82,7 +82,7 @@ data Arith
 data Logic
   = And
   | Or
-  | Xor -- ^ NB: bitvector only!
+  | Xor -- ^ Bitvector only; a runtime error for scalars!
   deriving (Show, Eq)
 
 -- | Comparison operations.
@@ -149,7 +149,7 @@ data Value
   | ValInt      CLong
   | ValRational Rational
   | ValDouble   CDouble
-  | ValBitvec   [Bit] -- ^ LSB first
+  | ValBitvec   [Bit] -- ^ Least-significant first.
   deriving (Show)
 
 -- | A model maps variables to values.

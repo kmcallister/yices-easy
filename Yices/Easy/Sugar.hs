@@ -1,7 +1,7 @@
 -- | Syntactic sugar for embedding Yices expressions in Haskell.
 --
--- Defines a number of aliases and infix operators, a
--- @'Num'@ instance for @'Expr'@, etc.
+-- Defines a number of aliases and infix operators, and a
+-- @'Num'@ instance for @'Expr'@.
 --
 -- This is not an essential part of the interface. Expressions
 -- may be built using @Yices.Easy.Types@ directly.
@@ -26,6 +26,11 @@ module Yices.Easy.Sugar
  , ($.)
 
    -- * Scalar arithmetic
+   
+   -- | We also provide @instance 'Num' 'Expr'@,
+   -- so you can use @('+')@, @('*')@, @('-')@,
+   -- @'negate'@, @'fromInteger'@, and integer
+   -- literals.
  , add, mul, sub
 
    -- * Scalar comparison
