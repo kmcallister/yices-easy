@@ -187,8 +187,8 @@ get env mdl (Get v t) = Got v <$> go (M.lookup v env) where
       else (ValBitvec . map (toEnum.fI)) <$> peekArray n p
 
 -- | The @'IO'@ action underlying @'check'@.
-checkIO :: Context -> ModelType -> IO (Maybe Model)
-checkIO c ts = withContext c $ \env ctx -> do
+checkIO :: Query -> IO (Maybe Model)
+checkIO (Query c ts) = withContext c $ \env ctx -> do
   sat <- Y.c_check ctx
   if sat /= 1 then return Nothing else do
     mdl <- Y.c_get_model ctx
@@ -202,5 +202,5 @@ checkIO c ts = withContext c $ \env ctx -> do
 -- Here we assume that Yices, taken as a whole, is
 -- a pure function.  We wrap the IO action returned
 -- by @'checkIO'@ using @'unsafePerformIO'@.
-check :: Context -> ModelType -> Maybe Model
-check ctx ts = unsafePerformIO $ checkIO ctx ts
+check :: Query -> Maybe Model
+check = unsafePerformIO . checkIO

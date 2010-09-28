@@ -157,4 +157,4 @@ bitvector n
   | n < 0 = error "Yices.Easy.Sugar.bitvector: negative Integer not allowed"
 bitvector n = LitBitvec . FromBits . getBits $ n where
   getBits 0 = []
-  getBits k = let (d,m) = k `divMod` 2 in (toEnum $ fromIntegral m) : getBits d
+  getBits k = let (d,m) = k `divMod` 2 in toEnum (fromIntegral m) : getBits d

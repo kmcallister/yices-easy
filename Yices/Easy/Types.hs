@@ -139,6 +139,10 @@ data Get
 
 type ModelType = [Get]
 
+-- | A query to the solver: solve for some variables in a context.
+data Query
+  = Query Context ModelType
+
 -- | A value produced from a model.
 data Value
   = ValBool     Bool

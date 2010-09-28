@@ -23,8 +23,10 @@ library
     , Yices.Easy.Types
     , Yices.Easy.Run
     , Yices.Easy.Sugar
+    , Yices.Easy.Build
   ghc-options:       -Wall
   build-depends:
       base           >= 3 && < 5
     , containers     >= 0.3
+    , transformers   >= 0.2
     , bindings-yices >= 0.2
