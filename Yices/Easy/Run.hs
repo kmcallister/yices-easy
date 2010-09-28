@@ -2,10 +2,14 @@
     PatternGuards
   , Rank2Types #-}
 
--- |
+-- | Running the Yices SMT solver.
 
 module Yices.Easy.Run
-  ( dump, checkM, check
+  ( -- * Solving
+    check
+  , checkIO
+    -- * Debugging
+  , dump
   ) where
 
 import Yices.Easy.Types
@@ -107,10 +111,10 @@ buildExpr env ctx = go where
   getBCompare Unsigned Lt = Y.c_mk_bv_lt
   getBCompare Unsigned Le = Y.c_mk_bv_le
 
-  getBShift L Bit0 = Y.c_mk_bv_shift_left0
-  getBShift L Bit1 = Y.c_mk_bv_shift_left1
-  getBShift R Bit0 = Y.c_mk_bv_shift_right0
-  getBShift R Bit1 = Y.c_mk_bv_shift_right1
+  getBShift L B0 = Y.c_mk_bv_shift_left0
+  getBShift L B1 = Y.c_mk_bv_shift_left1
+  getBShift R B0 = Y.c_mk_bv_shift_right0
+  getBShift R B1 = Y.c_mk_bv_shift_right1
 
 buildType :: PCtx -> Type -> IO PType
 buildType ctx = go where
@@ -120,7 +124,6 @@ buildType ctx = go where
     withArrayLen ys $ \n a -> f a (fI n)
 
   go (TyName xs) = withCString xs $ Y.c_mk_type ctx
-  go TyBool      = go (TyName "bool")
   go (TyFun xs r) = lift1 r $ \rp -> liftN xs $ \xp n ->
     Y.c_mk_function_type ctx xp n rp
   go (TyBitvec n) = Y.c_mk_bitvector_type ctx (fI n)
@@ -144,6 +147,8 @@ withContext (Context ds as) act
   mapM_ mkA as
   act env ctx 
 
+-- | Dump some information about a context
+-- and expression to standard output.
 dump :: Context -> Expr -> IO ()
 dump c e = withContext c $ \env ctx -> do
   ep <- buildExpr env ctx e
@@ -181,12 +186,21 @@ get env mdl (Get v t) = Got v <$> go (M.lookup v env) where
       then return ValUnknown
       else (ValBitvec . map (toEnum.fI)) <$> peekArray n p
 
-checkM :: Context -> ModelType -> IO (Maybe Model)
-checkM c ts = withContext c $ \env ctx -> do
+-- | The @'IO'@ action underlying @'check'@.
+checkIO :: Context -> ModelType -> IO (Maybe Model)
+checkIO c ts = withContext c $ \env ctx -> do
   sat <- Y.c_check ctx
   if sat /= 1 then return Nothing else do
     mdl <- Y.c_get_model ctx
     Just <$> mapM (get env mdl) ts
 
+-- | Check a context for satisfiability.
+--
+-- If satisfiable, returns values for the specified
+-- variables.
+--
+-- Here we assume that Yices, taken as a whole, is
+-- a pure function.  We wrap the IO action returned
+-- by @'checkIO'@ using @'unsafePerformIO'@.
 check :: Context -> ModelType -> Maybe Model
-check ctx ts = unsafePerformIO $ checkM ctx ts
+check ctx ts = unsafePerformIO $ checkIO ctx ts

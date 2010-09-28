@@ -6,22 +6,15 @@ module Yices.Easy.Types
 
 import Foreign.C.Types ( CULong, CLong, CDouble )
 
--- * Type synonyms
-
-type Ident  = String
-type Size   = Int
-type Index  = Int
-type Weight = Integer
-
 -- * Top level
 
--- | Declaring the existence of a variable.
+-- | Declare the existence of a variable.
 data Declaration
   = Declare Ident Type
   deriving (Show)
 
--- | Asserting a Boolean fact.
-data Assertion
+-- | Assert a Boolean fact.
+newtype Assertion
   = Assert Expr
 --  AssertWeighted Weight Expr
   deriving (Show)
@@ -36,23 +29,22 @@ data Context
 -- | Types.
 data Type
   = TyName   Ident        -- ^ Named type.
-  | TyBool                -- ^ The named type "@bool@".
-  | TyFun    [Type] Type  -- ^ Function of args and result type.
+  | TyFun    [Type] Type  -- ^ Function, with args and result type.
   | TyBitvec Size         -- ^ Bitvector.
   | TyTuple  [Type]       -- ^ Tuple.
   deriving (Show)
 
--- | Expressions
+-- | Expressions.
 data Expr
   = LitBool    Bool                          -- ^ Literal boolean.
   | LitNum     LitNum                        -- ^ Literal number.
   | Var        Ident                         -- ^ Variable.
 
-  | Apply      Expr [Expr]                   -- ^ Apply a function.
+  | Apply      Expr [Expr]                   -- ^ Function application.
   | Arith      Arith [Expr]                  -- ^ Arithmetic.
   | Logic      Logic [Expr]                  -- ^ Boolean logic operation.
   | Not        Expr                          -- ^ Boolean negation.
-  | Compare    Compare Expr Expr             -- ^ Compare.
+  | Compare    Compare Expr Expr             -- ^ Comparison.
   | IfThenElse Expr Expr Expr                -- ^ Conditional expression.
 
   | LitBitvec  LitBitvec                     -- ^ Literal bitvector.
@@ -62,36 +54,36 @@ data Expr
   | BitLogic   Logic Expr Expr               -- ^ Bitwise logical operation.
   | BitNot     Expr                          -- ^ Bitwise negate.
   | BitShift   Direction Bit Size Expr       -- ^ Bit shift with fill.
-  | BitCompare Signedness Compare Expr Expr  -- ^ Bitvector compare.
+  | BitCompare Signedness Compare Expr Expr  -- ^ Bitvector comparison.
   | BitExtract Index Index Expr              -- ^ Extract a subvector.
   | BitSignEx  Size  Expr                    -- ^ Sign-extend /n/ extra bits.
-  deriving (Show)
+  deriving (Show, Eq)  -- need Eq for Num
 
 -- | Ways of specifying a literal number.
 data LitNum
   = FromInt    Int
   | FromString String  -- ^ ASCII digits.
-  deriving (Show)
+  deriving (Show, Eq)
 
 -- | Ways of specifying a literal bitvector.
 data LitBitvec
   = FromULong  Size CULong
   | FromBits   [Bit]         -- ^ LSB first.
-  deriving (Show)
+  deriving (Show, Eq)
 
 -- | Arithmetic operations.
 data Arith
   = Add
   | Sub
   | Mul
-  deriving (Show)
+  deriving (Show, Eq)
 
 -- | Logical operations.
 data Logic
   = And
   | Or
   | Xor -- ^ NB: bitvector only!
-  deriving (Show)
+  deriving (Show, Eq)
 
 -- | Comparison operations.
 data Compare
@@ -101,25 +93,32 @@ data Compare
   | Ge
   | Lt
   | Le
-  deriving (Show)
+  deriving (Show, Eq)
 
 -- | Direction of shifting.
 data Direction
   = L
   | R
-  deriving (Show)
+  deriving (Show, Eq)
 
 -- | Bits.
 data Bit
-  = Bit0
-  | Bit1
-  deriving (Show, Enum)
+  = B0
+  | B1
+  deriving (Show, Enum, Eq)
 
 -- | Signedness of bitvector operations.
 data Signedness
   = Signed
   | Unsigned
-  deriving (Show)
+  deriving (Show, Eq)
+
+-- * Type synonyms
+
+type Ident  = String
+type Size   = Int
+type Index  = Int
+type Weight = Integer
 
 -- * Asking for models
 
