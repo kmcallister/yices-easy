@@ -6,6 +6,7 @@ synopsis:            Simple interface to the Yices SMT (SAT modulo theories) sol
 category:            Math, Algorithms, Theorem Provers
 author:              Keegan McAllister <mcallister.keegan@gmail.com>
 maintainer:          Keegan McAllister <mcallister.keegan@gmail.com>
+homepage:            http://www.ugcs.caltech.edu/~keegan/haskell/yices-easy/
 build-type:          Simple
 cabal-version:       >=1.2
 description:
