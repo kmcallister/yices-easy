@@ -93,11 +93,11 @@ execBuild :: Build a -> Query
 execBuild = runIdentity . execBuildT
 
 -- | Invoke @'solve'@ on a @'Build'@ action directly.
-solveBuild :: Build a -> IO (Maybe Model)
+solveBuild :: Build a -> IO Result
 solveBuild = solve . execBuild
 
 -- | Invoke @'solve'@ on a @'BuildT' 'IO'@ action directly.
-solveBuildT :: BuildT IO a -> IO (Maybe Model)
+solveBuildT :: BuildT IO a -> IO Result
 solveBuildT x = execBuildT x >>= solve
 
 -- | Generate a fresh name from a base string.

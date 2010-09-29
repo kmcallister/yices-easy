@@ -157,3 +157,10 @@ data Value
 -- Some of the asked-for variables may be absent, if there was an
 -- error or the model was underspecified.
 type Model = M.Map Ident Value
+
+-- | Result of trying to solve a model.
+data Result
+  = Sat Model  -- ^ Definitely satisfiable.
+  | Unsat      -- ^ Definitely unsatisfiable.
+  | Unknown    -- ^ Unknown, due to incompleteness or error.
+  deriving (Show)

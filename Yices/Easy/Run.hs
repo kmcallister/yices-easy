@@ -189,9 +189,12 @@ get env mdl (Get v t) = do
 --
 -- If satisfiable, returns values for the specified
 -- variables.
-solve :: Query -> IO (Maybe Model)
+solve :: Query -> IO Result
 solve (Query c ts) = withContext c $ \env ctx -> do
   sat <- Y.c_check ctx
-  if sat /= 1 then return Nothing else do
-    mdl <- Y.c_get_model ctx
-    (Just . M.fromList . catMaybes) <$> mapM (get env mdl) ts
+  case sat of
+    1 -> do
+      mdl <- Y.c_get_model ctx
+      (Sat . M.fromList . catMaybes) <$> mapM (get env mdl) ts
+    0 -> return Unsat
+    _ -> return Unknown
