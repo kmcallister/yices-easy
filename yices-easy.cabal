@@ -24,6 +24,9 @@ description:
   .
   The library aims for simplicity, and not all features of Yices are supported.
   Suggestions and patches are welcome.
+extra-source-files:
+    examples/latin.hs
+  , examples/graph-color.hs
 
 library
   exposed-modules:  
