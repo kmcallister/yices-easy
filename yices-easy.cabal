@@ -8,7 +8,7 @@ author:              Keegan McAllister <mcallister.keegan@gmail.com>
 maintainer:          Keegan McAllister <mcallister.keegan@gmail.com>
 homepage:            http://www.ugcs.caltech.edu/~keegan/haskell/yices-easy/
 build-type:          Simple
-cabal-version:       >=1.2
+cabal-version:       >=1.6
 description:
   This library provides a simple interface to Yices, an SMT solver available
   from <http://yices.csl.sri.com/>.
@@ -41,3 +41,7 @@ library
     , containers     >= 0.3
     , transformers   >= 0.2
     , bindings-yices >= 0.2
+
+source-repository head
+    type:     git
+    location: git://github.com/kmcallister/yices-easy

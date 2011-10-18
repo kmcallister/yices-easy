@@ -1,0 +1,8 @@
+yices-easy provides a simple interface from Haskell to the Yices SMT (SAT
+modulo theories) solver.  See yices-easy.cabal for more information.
+
+To build documentation, run
+
+  $ cabal configure && cabal haddock --hyperlink-source
+
+This will produce HTML documentation under dist/doc/html/yices-easy
