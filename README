@@ -1,7 +1,9 @@
 yices-easy provides a simple interface from Haskell to the Yices SMT (SAT
 modulo theories) solver.  See yices-easy.cabal for more information.
 
-To build documentation, run
+Documentation is hosted at http://kmcallister.github.com/yices-easy
+
+To build documentation yourself, run
 
   $ cabal configure && cabal haddock --hyperlink-source
 
